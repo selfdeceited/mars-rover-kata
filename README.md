@@ -2,6 +2,10 @@
 
 [Original link](https://kata-log.rocks/mars-rover-kata)
 
+## Launch 
+`yarn` && `yarn test`.
+Coverage is 100%, `yarn jest --coverage` to verify.
+
 ## Your Task
 You’re part of the team that explores Mars by sending remotely controlled vehicles to the surface of the planet. Develop an API that translates the commands sent from earth to instructions that are understood by the rover.
 

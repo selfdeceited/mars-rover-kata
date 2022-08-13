@@ -35,6 +35,14 @@ describe("when rover is placed", () => {
         expect(rover.isAt).toEqual({ x: -1, y: 0 })
     })
 
+    it('should be able to change direction in more complex cases', () => {
+        const rover = new Rover({ x: 0, y: 0, looking: 'north' })
+
+        rover.receiveCommands(['⬇', '➡', '⬇', '⬇', '⬇', '⬇', '➡', '⬆', '⬇', '➡', '⬇'])
+
+        expect(rover.isAt).toEqual({ x: -3, y: -1 })
+    })
+
     describe("on a planet", () => {
         it('should come back after reaching the planet end', () => {
             const mars = new Planet({ size: 10 })
@@ -49,9 +57,9 @@ describe("when rover is placed", () => {
             const mars = new Planet({ size: 10 })
             const rover = new Rover({ x: 0, y: 0, looking: 'north', on: mars })
 
-            rover.receiveCommands(['⬇'])
+            rover.receiveCommands(['⬇', '➡', '⬇'])
 
-            expect(rover.isAt).toEqual({x: 0, y: 10})
+            expect(rover.isAt).toEqual({x: 10, y: 10})
         })
 
         // todo: mb cover if [10, 10] to be the same as [3,3] since it's not a square...

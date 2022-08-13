@@ -1,6 +1,6 @@
 import { Coordinates, MovementCommand } from "./types"
 
-import { Direction } from "./direction"
+import { Direction } from "./turn"
 
 const movementForwardMap: Record<Direction, (_: Coordinates) => Coordinates> = {
     north: ({x, y}) => ({x, y: y + 1}),
@@ -17,7 +17,7 @@ const movementBackwardMap: Record<Direction, (_: Coordinates) => Coordinates> = 
 }
 
 
-export const movementCommandMap: Record<MovementCommand, ({x, y}: Coordinates, direction: Direction) => Coordinates> = {
-    ['⬆']: ({x, y}, direction) => movementForwardMap[direction]({ x, y }),
-    ['⬇']: ({x, y}, direction) => movementBackwardMap[direction]({ x, y })
+export const movements: Record<MovementCommand, (direction: Direction) => (_: Coordinates) => Coordinates> = {
+    ['⬆']: direction => movementForwardMap[direction],
+    ['⬇']: direction => movementBackwardMap[direction]
 }

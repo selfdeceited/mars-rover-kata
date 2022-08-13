@@ -1,9 +1,9 @@
 import { Command, CommandsResult, Coordinates, MovementCommand } from "./types"
-import { Direction, directionMap } from "./direction"
-import { isDirectionCommand, isMovementCommand } from "./guards"
+import { Direction, turns } from "./turn"
+import { isMovementCommand, isTurnCommand } from "./guards"
 
 import { Planet } from "./Planet"
-import { movementCommandMap } from "./movement"
+import { movements } from "./movement"
 
 type RoverStartInput = Coordinates & { looking: Direction, on?: Planet }
 
@@ -33,8 +33,8 @@ export class Rover {
             return
 
         detectedObstacle = this.#handleMovement(command, detectedObstacle)
-      } else if (isDirectionCommand(command)) {
-        this.#direction = directionMap[command](this.#direction)
+      } else if (isTurnCommand(command)) {
+        this.#direction = turns[command](this.#direction)
       }
     })
 
@@ -42,14 +42,15 @@ export class Rover {
   }
 
   #handleMovement(command: MovementCommand, detectedObstacle?: Coordinates): Coordinates | undefined {
-    let { x, y } = movementCommandMap[command]({ x: this.#x, y: this.#y }, this.#direction)
+    const move = movements[command](this.#direction)
+    let { x, y } = move({ x: this.#x, y: this.#y })
 
-    const planetValidationResult = this.#validatePlanet({ x, y })
-    if (planetValidationResult.success) {
-      this.#x = planetValidationResult.coordinates.x
-      this.#y = planetValidationResult.coordinates.y
+    const planetValidation = this.#validatePlanet({ x, y })
+    if (planetValidation.success) {
+      this.#x = planetValidation.coordinates.x
+      this.#y = planetValidation.coordinates.y
     } else {
-      detectedObstacle = planetValidationResult.coordinates
+      detectedObstacle = planetValidation.coordinates
       return detectedObstacle
     }
   }
