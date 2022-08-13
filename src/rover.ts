@@ -5,7 +5,7 @@ import { isDirectionCommand, isMovementCommand } from "./guards"
 import { Planet } from "./Planet"
 import { movementCommandMap } from "./movement"
 
-type RoverStartInput = Coordinates & { looking: Direction, at?: Planet }
+type RoverStartInput = Coordinates & { looking: Direction, on?: Planet }
 
 export class Rover {
   #x: number
@@ -13,11 +13,11 @@ export class Rover {
   #direction: Direction
   #planet: Planet | undefined
 
-  constructor({ x, y, looking, at }: RoverStartInput) {
+  constructor({ x, y, looking, on }: RoverStartInput) {
     this.#x = x
     this.#y = y
     this.#direction = looking
-    this.#planet = at
+    this.#planet = on
   }
 
   get isAt(): Coordinates {

@@ -9,6 +9,10 @@ export class Planet {
         this.#obstacles = _.obstacles
     }
 
+    public get size(): number {
+        return this.#size
+    }
+
     public validateMapEdges(moveAttempt: Coordinates): Coordinates {
         let { x, y } = moveAttempt
     
