@@ -1,60 +1,70 @@
-import { Command, CommandsResult, Coordinates, Planet } from "./types"
+import { Command, CommandsResult, Coordinates, MovementCommand } from "./types"
 import { Direction, directionMap } from "./direction"
 import { isDirectionCommand, isMovementCommand } from "./guards"
 
+import { Planet } from "./Planet"
 import { movementCommandMap } from "./movement"
 
 type RoverStartInput = Coordinates & { looking: Direction, at?: Planet }
 
 export class Rover {
-    #x: number
-    #y: number
-    #direction: Direction
-    #planet: Planet | undefined
+  #x: number
+  #y: number
+  #direction: Direction
+  #planet: Planet | undefined
 
-    constructor({ x, y, looking, at }: RoverStartInput) {
-        this.#x = x
-        this.#y = y
-        this.#direction = looking
-        this.#planet = at
+  constructor({ x, y, looking, at }: RoverStartInput) {
+    this.#x = x
+    this.#y = y
+    this.#direction = looking
+    this.#planet = at
+  }
+
+  get isAt(): Coordinates {
+    return { x: this.#x, y: this.#y }
+  }
+
+  receiveCommands(commands: Command[]): CommandsResult {
+    let detectedObstacle: Coordinates
+
+    commands.forEach((command) => {
+      if (isMovementCommand(command)) {
+        if (detectedObstacle)
+            return
+
+        detectedObstacle = this.#handleMovement(command, detectedObstacle)
+      } else if (isDirectionCommand(command)) {
+        this.#direction = directionMap[command](this.#direction)
+      }
+    })
+
+    return detectedObstacle ? { detectedObstacle } : "success"
+  }
+
+  #handleMovement(command: MovementCommand, detectedObstacle?: Coordinates): Coordinates | undefined {
+    let { x, y } = movementCommandMap[command]({ x: this.#x, y: this.#y }, this.#direction)
+
+    const planetValidationResult = this.#validatePlanet({ x, y })
+    if (planetValidationResult.success) {
+      this.#x = planetValidationResult.coordinates.x
+      this.#y = planetValidationResult.coordinates.y
+    } else {
+      detectedObstacle = planetValidationResult.coordinates
+      return detectedObstacle
+    }
+  }
+
+  #validatePlanet(coordinates: Coordinates): { success: boolean, coordinates: Coordinates } {
+    if (!this.#planet) {
+        return { success: true, coordinates }
     }
 
-    get isAt(): Coordinates {
-        return { x: this.#x, y: this.#y }
+    let { x, y } = this.#planet.validateMapEdges(coordinates)
+
+    if (this.#planet.detectObstacles({ x, y })) {
+      return { success: false, coordinates: { x, y } }
     }
 
-    receiveCommands(commands: Command[]): CommandsResult {
-        let detectedObstacle: Coordinates
-
-        commands.forEach(command => {
-            if (!!detectedObstacle)
-                return
-
-            if (isMovementCommand(command)) {
-                const { x, y } = movementCommandMap[command](
-                    { x: this.#x, y: this.#y},
-                    this.#direction, this.#planet
-                )
-
-                if (this.detectObstacles(x, y)) {
-                    detectedObstacle = {x, y}
-                    return
-                }
-
-                this.#x = x
-                this.#y = y
-            } else if (isDirectionCommand(command)) {
-                this.#direction = directionMap[command](this.#direction)
-            }
-        })
-
-        return detectedObstacle ? { detectedObstacle } : 'success'
-    }
-
-    detectObstacles(x: number, y: number): boolean {
-        if (!this.#planet || !this.#planet.obstacles)
-            return false
-
-        return this.#planet.obstacles.some(o => o.x === x && o.y === y)
-    }
+    return { success: true, coordinates: { x, y } }
+  }
 }
