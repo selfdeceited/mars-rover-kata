@@ -1,16 +1,10 @@
-import { Command, Coordinates } from "./types"
-import { Direction, directionMap, isDirectionCommand } from "./direction"
-import { isMovementCommand, movementCommandMap } from "./movement"
+import { Command, CommandsResult, Coordinates, Planet } from "./types"
+import { Direction, directionMap } from "./direction"
+import { isDirectionCommand, isMovementCommand } from "./guards"
 
-export type Planet = { size: number, obstacles?: Array<Coordinates> }
+import { movementCommandMap } from "./movement"
 
-export type RoverStartInput = Coordinates & { looking: Direction, at?: Planet }
-
-type CommandsResult = 'success' | { obstacle: Coordinates }
-export function isObstaclesReport(report: CommandsResult): report is { obstacle: Coordinates } {
-    return report !== 'success' && !!(report as any).obstacle
-}
-
+type RoverStartInput = Coordinates & { looking: Direction, at?: Planet }
 
 export class Rover {
     #x: number
@@ -37,7 +31,10 @@ export class Rover {
                 return
 
             if (isMovementCommand(command)) {
-                const { x, y } = movementCommandMap[command]({ x: this.#x, y: this.#y}, this.#direction, this.#planet)
+                const { x, y } = movementCommandMap[command](
+                    { x: this.#x, y: this.#y},
+                    this.#direction, this.#planet
+                )
 
                 if (this.detectObstacles(x, y)) {
                     detectedObstacle = {x, y}
@@ -51,7 +48,7 @@ export class Rover {
             }
         })
 
-        return detectedObstacle ? {obstacle: detectedObstacle} : 'success'
+        return detectedObstacle ? { detectedObstacle } : 'success'
     }
 
     detectObstacles(x: number, y: number): boolean {
